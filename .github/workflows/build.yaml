@@ -1,0 +1,59 @@
+name: build
+
+on:
+  workflow_dispatch:
+    inputs:
+      linux_repo:
+        description: Linux Git repository to use
+        type: string
+        required: false
+      linux_ref:
+        description: Linux Git ref to use
+        type: string
+        required: false
+      linux_arch:
+        description: Linux ARCH to use
+        type: string
+        required: false
+      linux_config:
+        description: Linux config set to use
+        type: string
+        required: false
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    container: ghcr.io/sigmaris/aarch64-linux-crossbuilder:bookworm
+    env:
+      LINUX_REPO_WD: "${{ github.event.inputs.linux_repo }}"
+      LINUX_REF_WD: "${{ github.event.inputs.linux_ref }}"
+      LINUX_ARCH_WD: "${{ github.event.inputs.linux_arch }}"
+      LINUX_CONFIG_WD: "${{ github.event.inputs.linux_config }}"
+    steps:
+      - name: Check out this repo
+        uses: actions/checkout@v4
+        with:
+          path: linux-build
+      
+      - id: resolve_vars
+        name: Resolve variables
+        run: scripts/resolve_vars.sh
+      
+      - name: Check out linux source
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.resolve_vars.outputs.linux_repo }}
+          ref: ${{ steps.resolve_vars.outputs.linux_ref }}
+          path: linux-build/linux-src
+
+      - name: Configure and build linux
+        working-directory: linux-build/linux-src
+        run: |
+          source ../configs/${{ steps.resolve_vars.outputs.linux_config }}.sh
+          make -j$(getconf _NPROCESSORS_ONLN) bindeb-pkg
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: linuxdebs
+          path: linux-build/*.deb

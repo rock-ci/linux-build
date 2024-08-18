@@ -1,0 +1,5 @@
+# Sourced by scripts to set "known good" default sources if not building a particular commit
+DEF_LINUX_REPO="https://github.com/torvalds/linux.git"
+DEF_LINUX_REF="v6.10"
+DEF_LINUX_ARCH="arm64"
+DEF_LINUX_CONFIG="defconfig"
