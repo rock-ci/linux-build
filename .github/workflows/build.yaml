@@ -37,6 +37,7 @@ jobs:
       
       - id: resolve_vars
         name: Resolve variables
+        working-directory: linux-build
         run: scripts/resolve_vars.sh
       
       - name: Check out linux source
