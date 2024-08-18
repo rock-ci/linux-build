@@ -44,7 +44,7 @@ jobs:
       - name: Configure and build linux
         working-directory: linux-src
         run: |
-          source ../configs/${{ steps.resolve_vars.outputs.linux_config }}.sh
+          . ../configs/${{ steps.resolve_vars.outputs.linux_config }}.sh
           make -j$(getconf _NPROCESSORS_ONLN) bindeb-pkg
 
       - name: Upload build artifact
