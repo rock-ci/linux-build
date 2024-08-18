@@ -15,7 +15,7 @@ echo "::set-output name=linux_config::${LINUX_CONFIG}"
 
 # Set environment variables for Linux kernel compile:
 echo "ARCH=${LINUX_ARCH}" >> "$GITHUB_ENV"
-case "$LINUX_ARCH_$(uname -m)" in
+case "${LINUX_ARCH}_$(uname -m)" in
   arm64_aarch64)
     # native compilation
     ;;
