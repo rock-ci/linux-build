@@ -8,10 +8,10 @@ LINUX_REF="${LINUX_REF_WD:-$DEF_LINUX_REF}"
 LINUX_ARCH="${LINUX_ARCH_WD:-$DEF_LINUX_ARCH}"
 LINUX_CONFIG="${LINUX_CONFIG_WD:-$DEF_LINUX_CONFIG}"
 
-echo "::set-output name=linux_repo::${LINUX_REPO}"
-echo "::set-output name=linux_ref::${LINUX_REF}"
-echo "::set-output name=linux_arch::${LINUX_ARCH}"
-echo "::set-output name=linux_config::${LINUX_CONFIG}"
+echo "linux_repo=${LINUX_REPO}" >> "$GITHUB_OUTPUT"
+echo "linux_ref=${LINUX_REF}" >> "$GITHUB_OUTPUT"
+echo "linux_arch=${LINUX_ARCH}" >> "$GITHUB_OUTPUT"
+echo "linux_config=${LINUX_CONFIG}" >> "$GITHUB_OUTPUT"
 
 # Set environment variables for Linux kernel compile:
 echo "ARCH=${LINUX_ARCH}" >> "$GITHUB_ENV"
