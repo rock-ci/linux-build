@@ -39,7 +39,7 @@ jobs:
       
       - name: Check out linux source
         run: |
-          git clone -b '${{ steps.resolve_vars.outputs.linux_ref }}' '${{ steps.resolve_vars.outputs.linux_repo }}' linux-src
+          git clone --depth 1 --single-branch --branch '${{ steps.resolve_vars.outputs.linux_ref }}' '${{ steps.resolve_vars.outputs.linux_repo }}' linux-src
 
       - name: Configure and build linux
         working-directory: linux-src
