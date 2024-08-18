@@ -32,23 +32,17 @@ jobs:
     steps:
       - name: Check out this repo
         uses: actions/checkout@v4
-        with:
-          path: linux-build
       
       - id: resolve_vars
         name: Resolve variables
-        working-directory: linux-build
         run: scripts/resolve_vars.sh
       
       - name: Check out linux source
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ steps.resolve_vars.outputs.linux_repo }}
-          ref: ${{ steps.resolve_vars.outputs.linux_ref }}
-          path: linux-build/linux-src
+        run: |
+          git clone -b '${{ steps.resolve_vars.outputs.linux_ref }}' '${{ steps.resolve_vars.outputs.linux_repo }}' linux-src
 
       - name: Configure and build linux
-        working-directory: linux-build/linux-src
+        working-directory: linux-src
         run: |
           source ../configs/${{ steps.resolve_vars.outputs.linux_config }}.sh
           make -j$(getconf _NPROCESSORS_ONLN) bindeb-pkg
@@ -57,4 +51,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: linuxdebs
-          path: linux-build/*.deb
+          path: "*.deb"
