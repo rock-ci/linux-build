@@ -15,13 +15,14 @@ echo "linux_config=${LINUX_CONFIG}" >> "$GITHUB_OUTPUT"
 
 # Set environment variables for Linux kernel compile:
 echo "ARCH=${LINUX_ARCH}" >> "$GITHUB_ENV"
-case "${LINUX_ARCH}_$(uname -m)" in
-  arm64_aarch64)
+arch_native="${LINUX_ARCH},$(uname -m)"
+case "$arch_native" in
+  arm64,aarch64)
     # native compilation
     ;;
-  arm64_*)
+  arm64,*)
     echo "CROSS_COMPILE=aarch64-linux-gnu-" >> "$GITHUB_ENV"
     ;;
   *)
-    echo "Unsupported ARCH for CROSS_COMPILE: $LINUX_ARCH"
+    echo "Unsupported ARCH for CROSS_COMPILE: $arch_native"
 esac
