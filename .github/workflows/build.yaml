@@ -23,7 +23,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-24.04
-    container: ghcr.io/sigmaris/aarch64-linux-crossbuilder:bookworm
+    container: ghcr.io/sigmaris/aarch64-linux-crossbuilder:trixie
     env:
       LINUX_REPO_WD: "${{ github.event.inputs.linux_repo }}"
       LINUX_REF_WD: "${{ github.event.inputs.linux_ref }}"
