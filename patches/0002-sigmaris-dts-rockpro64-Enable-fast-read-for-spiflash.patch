@@ -1,0 +1,25 @@
+From a785085e1b8b0074abe1c65b93e3dcab21163292 Mon Sep 17 00:00:00 2001
+From: Hugh Cole-Baker <sigmaris@gmail.com>
+Date: Wed, 22 Oct 2025 19:27:48 +0100
+Subject: [PATCH 2/2] sigmaris: dts: rockpro64: Enable fast-read for spiflash
+
+Signed-off-by: Hugh Cole-Baker <sigmaris@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3399-rockpro64.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399-rockpro64.dtsi b/arch/arm64/boot/dts/rockchip/rk3399-rockpro64.dtsi
+index 8b72ae6449c91..b27d810b19d44 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3399-rockpro64.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399-rockpro64.dtsi
+@@ -787,6 +787,7 @@ flash@0 {
+ 		reg = <0>;
+ 		spi-max-frequency = <10000000>;
+ 		vcc-supply = <&vcc_3v0>;
++		m25p,fast-read;
+ 	};
+ };
+ 
+-- 
+2.50.1 (Apple Git-155)
+

@@ -1,6 +1,24 @@
 name: build
 
 on:
+  workflow_call:
+    inputs:
+      linux_repo:
+        description: Linux Git repository to use
+        type: string
+        required: false
+      linux_ref:
+        description: Linux Git ref to use
+        type: string
+        required: false
+      linux_arch:
+        description: Linux ARCH to use
+        type: string
+        required: false
+      linux_config:
+        description: Linux config set to use
+        type: string
+        required: false
   workflow_dispatch:
     inputs:
       linux_repo:
@@ -25,10 +43,10 @@ jobs:
     runs-on: ubuntu-24.04
     container: ghcr.io/sigmaris/aarch64-linux-crossbuilder:trixie
     env:
-      LINUX_REPO_WD: "${{ github.event.inputs.linux_repo }}"
-      LINUX_REF_WD: "${{ github.event.inputs.linux_ref }}"
-      LINUX_ARCH_WD: "${{ github.event.inputs.linux_arch }}"
-      LINUX_CONFIG_WD: "${{ github.event.inputs.linux_config }}"
+      LINUX_REPO_WD: "${{ inputs.linux_repo }}"
+      LINUX_REF_WD: "${{ inputs.linux_ref }}"
+      LINUX_ARCH_WD: "${{ inputs.linux_arch }}"
+      LINUX_CONFIG_WD: "${{ inputs.linux_config }}"
     steps:
       - name: Check out this repo
         uses: actions/checkout@v4
@@ -39,7 +57,13 @@ jobs:
 
       - name: Check out linux source
         run: |
+          this_repo_commit="$(git rev-parse HEAD)"
           git clone --depth 1 --single-branch --branch '${{ steps.resolve_vars.outputs.linux_ref }}' '${{ steps.resolve_vars.outputs.linux_repo }}' linux-src
+          cd linux-src
+          echo '${{ toJSON(steps.resolve_vars.outputs) }}' | jq \
+            --arg buildcommit "$this_repo_commit" \
+            --arg linuxcommit "$(git rev-parse HEAD)" \
+            '. += {"build_commit":$buildcommit,"linux_commit":$linuxcommit}' > ../metadata.json
 
       - name: Configure and build linux
         working-directory: linux-src
@@ -52,3 +76,9 @@ jobs:
         with:
           name: linuxdebs
           path: "*.deb"
+
+      - name: Upload metadata artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: metadata
+          path: metadata.json
