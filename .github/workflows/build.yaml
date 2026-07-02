@@ -57,6 +57,7 @@ jobs:
 
       - name: Check out linux source
         run: |
+          git config --global --add safe.directory $(pwd)
           this_repo_commit="$(git rev-parse HEAD)"
           git clone --depth 1 --single-branch --branch '${{ steps.resolve_vars.outputs.linux_ref }}' '${{ steps.resolve_vars.outputs.linux_repo }}' linux-src
           cd linux-src
