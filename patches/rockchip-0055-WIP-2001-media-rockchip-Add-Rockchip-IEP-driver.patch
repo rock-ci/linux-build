@@ -1,18 +1,19 @@
-From 7f18b13921db7e248f1734537d69fac5d93ed1a1 Mon Sep 17 00:00:00 2001
+From 3632cf9fa3fe601e7dbf3f817a8206f15dcd2b4f Mon Sep 17 00:00:00 2001
 From: Alex Bee <knaerzche@gmail.com>
 Date: Sun, 11 Oct 2020 21:24:10 +0200
-Subject: [PATCH 55/59] WIP/2001: media: rockchip: Add Rockchip IEP driver
+Subject: [PATCH 1/4] WIP/2001: media: rockchip: Add Rockchip IEP driver
 
 Signed-off-by: Alex Bee <knaerzche@gmail.com>
+Signed-off-by: Hugh Cole-Baker <sigmaris@gmail.com>
 ---
  drivers/media/platform/rockchip/Kconfig       |    1 +
  drivers/media/platform/rockchip/Makefile      |    1 +
  drivers/media/platform/rockchip/iep/Kconfig   |   16 +
  drivers/media/platform/rockchip/iep/Makefile  |    5 +
  .../media/platform/rockchip/iep/iep-regs.h    |  291 +++++
- drivers/media/platform/rockchip/iep/iep.c     | 1087 +++++++++++++++++
+ drivers/media/platform/rockchip/iep/iep.c     | 1085 +++++++++++++++++
  drivers/media/platform/rockchip/iep/iep.h     |  112 ++
- 7 files changed, 1513 insertions(+)
+ 7 files changed, 1511 insertions(+)
  create mode 100644 drivers/media/platform/rockchip/iep/Kconfig
  create mode 100644 drivers/media/platform/rockchip/iep/Makefile
  create mode 100644 drivers/media/platform/rockchip/iep/iep-regs.h
@@ -20,33 +21,35 @@ Signed-off-by: Alex Bee <knaerzche@gmail.com>
  create mode 100644 drivers/media/platform/rockchip/iep/iep.h
 
 diff --git a/drivers/media/platform/rockchip/Kconfig b/drivers/media/platform/rockchip/Kconfig
-index b41d3960c1b4..9ff362805ded 100644
+index ba401d32f01ba..afc1f739dbf13 100644
 --- a/drivers/media/platform/rockchip/Kconfig
 +++ b/drivers/media/platform/rockchip/Kconfig
-@@ -2,5 +2,6 @@
+@@ -2,6 +2,7 @@
  
  comment "Rockchip media platform drivers"
  
 +source "drivers/media/platform/rockchip/iep/Kconfig"
  source "drivers/media/platform/rockchip/rga/Kconfig"
+ source "drivers/media/platform/rockchip/rkcif/Kconfig"
  source "drivers/media/platform/rockchip/rkisp1/Kconfig"
 diff --git a/drivers/media/platform/rockchip/Makefile b/drivers/media/platform/rockchip/Makefile
-index 4f782b876ac9..c075ecc2fa14 100644
+index 0e0b2cbbd4bd2..02703c8e790f8 100644
 --- a/drivers/media/platform/rockchip/Makefile
 +++ b/drivers/media/platform/rockchip/Makefile
-@@ -1,3 +1,4 @@
+@@ -1,4 +1,5 @@
  # SPDX-License-Identifier: GPL-2.0-only
 +obj-y += iep/
  obj-y += rga/
+ obj-y += rkcif/
  obj-y += rkisp1/
 diff --git a/drivers/media/platform/rockchip/iep/Kconfig b/drivers/media/platform/rockchip/iep/Kconfig
 new file mode 100644
-index 000000000000..d95155a95133
+index 0000000000000..6fad019e4b9b9
 --- /dev/null
 +++ b/drivers/media/platform/rockchip/iep/Kconfig
 @@ -0,0 +1,16 @@
 +# SPDX-License-Identifier: GPL-2.0-only
-+ 
++
 +config VIDEO_ROCKCHIP_IEP
 +	tristate "Rockchip Image Enhancement Processor"
 +	depends on V4L_MEM2MEM_DRIVERS
@@ -63,7 +66,7 @@ index 000000000000..d95155a95133
 +	  will be called rockchip-iep
 diff --git a/drivers/media/platform/rockchip/iep/Makefile b/drivers/media/platform/rockchip/iep/Makefile
 new file mode 100644
-index 000000000000..5c89b3277469
+index 0000000000000..5c89b32774691
 --- /dev/null
 +++ b/drivers/media/platform/rockchip/iep/Makefile
 @@ -0,0 +1,5 @@
@@ -74,7 +77,7 @@ index 000000000000..5c89b3277469
 +obj-$(CONFIG_VIDEO_ROCKCHIP_IEP) += rockchip-iep.o
 diff --git a/drivers/media/platform/rockchip/iep/iep-regs.h b/drivers/media/platform/rockchip/iep/iep-regs.h
 new file mode 100644
-index 000000000000..a68685ef3604
+index 0000000000000..a68685ef36044
 --- /dev/null
 +++ b/drivers/media/platform/rockchip/iep/iep-regs.h
 @@ -0,0 +1,291 @@
@@ -371,7 +374,7 @@ index 000000000000..a68685ef3604
 +#endif
 diff --git a/drivers/media/platform/rockchip/iep/iep.c b/drivers/media/platform/rockchip/iep/iep.c
 new file mode 100644
-index 000000000000..2e547133c3be
+index 0000000000000..8968932eb2e8e
 --- /dev/null
 +++ b/drivers/media/platform/rockchip/iep/iep.c
 @@ -0,0 +1,1085 @@
@@ -1462,7 +1465,7 @@ index 000000000000..2e547133c3be
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/media/platform/rockchip/iep/iep.h b/drivers/media/platform/rockchip/iep/iep.h
 new file mode 100644
-index 000000000000..7d9fc61624b6
+index 0000000000000..7d9fc61624b69
 --- /dev/null
 +++ b/drivers/media/platform/rockchip/iep/iep.h
 @@ -0,0 +1,112 @@
@@ -1579,5 +1582,5 @@ index 000000000000..7d9fc61624b6
 +
 +#endif
 -- 
-2.34.1
+2.50.1 (Apple Git-155)
 
