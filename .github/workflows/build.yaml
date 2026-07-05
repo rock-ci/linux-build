@@ -49,11 +49,57 @@ jobs:
       LINUX_CONFIG_WD: "${{ inputs.linux_config }}"
     steps:
       - name: Check out this repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - id: resolve_vars
         name: Resolve variables
         run: scripts/resolve_vars.sh
+
+      - id: get_remote_commit
+        name: Get commit on remote branch
+        run: |
+          remote_commit=$(git ls-remote --heads '${{ steps.resolve_vars.outputs.linux_repo }}' '${{ steps.resolve_vars.outputs.linux_ref }}' | awk '{print $1}')
+          echo "Remote commit: $remote_commit"
+          printf 'remote_commit=%s\n' "$remote_commit" > "$GITHUB_OUTPUT"
+
+      - id: get_last_metadata
+        name: Get previous run metadata
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const thisRun = await github.rest.actions.getWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId
+            });
+
+            const runs = await github.rest.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: thisRun.workflow_id,
+              status: "success",
+              per_page: 1,
+              exclude_pull_requests: true
+            });
+
+            if (runs.data.total_count === 0) {
+              console.log("No previous runs found");
+              return;
+            }
+
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runs.data.workflow_runs[0].id
+            });
+
+            const metadataArtifact = artifacts.data.artifacts.find(a => a.name === 'metadata.json');
+            if (!metadataArtifact) {
+              console.log('No previous metadata artifact found.');
+              return;
+            }
+            console.log("Found previous metadata artifact:", metadataArtifact);
+        continue-on-error: true
 
       - name: Check out linux source
         run: |
@@ -75,13 +121,14 @@ jobs:
           make -j$(getconf _NPROCESSORS_ONLN) bindeb-pkg
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: linuxdebs
           path: "*.deb"
 
       - name: Upload metadata artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: metadata
+          name: metadata.json
           path: metadata.json
+          archive: false
