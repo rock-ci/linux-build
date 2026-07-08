@@ -75,6 +75,7 @@ jobs:
               repo: context.repo.repo,
               run_id: context.runId
             });
+            console.log("This workflow run:", thisRun);
 
             const runs = await github.rest.actions.listWorkflowRuns({
               owner: context.repo.owner,
@@ -88,6 +89,8 @@ jobs:
             if (runs.data.total_count === 0) {
               console.log("No previous runs found");
               return;
+            } else {
+              console.log("Previous successful run:", runs.data.workflow_runs[0]);
             }
 
             const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
