@@ -7,6 +7,9 @@ on:
 
 jobs:
   call_build:
+    permissions:
+      contents: read
+      actions: read
     uses: ./.github/workflows/build.yaml
     with:
       linux_repo: 'https://gitlab.collabora.com/hardware-enablement/rockchip-3588/linux.git'
