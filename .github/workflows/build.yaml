@@ -68,10 +68,10 @@ jobs:
           echo '${{ toJSON(steps.resolve_vars.outputs) }}' | jq \
             --arg buildcommit "$this_repo_commit" \
             --arg linuxcommit "$remote_commit" \
-            '. += {"build_commit":$buildcommit,"linux_commit":$linuxcommit}' > metadata.json
+            '. += {"build_commit":$buildcommit,"linux_commit":$linuxcommit}' > new_metadata.json
 
-      - id: get_last_metadata
-        name: Get previous run metadata
+      - id: get_last_run
+        name: Get previous run
         uses: actions/github-script@v9
         with:
           script: |
@@ -92,27 +92,35 @@ jobs:
 
             if (runs.data.total_count === 0) {
               console.log("No previous runs found");
-              return;
+              return null;
+            } else {
+              return runs.data.workflow_runs[0].id;
             }
 
-            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: runs.data.workflow_runs[0].id,
-              name: "metadata.json"
-            });
+      - id: get_last_metadata
+        name: Get previous metadata
+        if: fromJSON(steps.get_last_run.outputs.result) != null
+        uses: actions/download-artifact@v8
+        with:
+          name: metadata.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ steps.get_last_run.outputs.result }}
 
-            const metadataArtifact = artifacts.data.artifacts.find(a => a.name === 'metadata.json');
-            if (!metadataArtifact) {
-              console.log('No previous metadata artifact found.');
-              return;
-            }
-            console.log("Found previous metadata artifact:", metadataArtifact);
-            return false;
-        continue-on-error: true
+      - id: export_metadata
+        name: Export and update metadata
+        run: |
+          printf 'curr=%s\n' "$(jq -c . < new_metadata.json)" >> "$GITHUB_OUTPUT"
+          if [[ -f metadata.json ]]
+          then
+            printf 'prev=%s\n' "$(jq -c . < metadata.json)" >> "$GITHUB_OUTPUT"
+          else
+            printf 'prev=null\n' >> "$GITHUB_OUTPUT"
+          fi
+          rm -f metadata.json
+          mv new_metadata.json metadata.json
 
       - name: Check out linux source
-        if: steps.get_last_metadata.outputs.result
+        if: fromJSON(steps.export_metadata.outputs.prev) != fromJSON(steps.export_metadata.outputs.curr)
         run: |
           git config --global user.email "actions@github.com"
           git config --global user.name "Github Actions"
@@ -125,14 +133,14 @@ jobs:
             '. += {"build_commit":$buildcommit,"linux_commit":$linuxcommit}' > ../metadata.json
 
       - name: Configure and build linux
-        if: steps.get_last_metadata.outputs.result
+        if: fromJSON(steps.export_metadata.outputs.prev) != fromJSON(steps.export_metadata.outputs.curr)
         working-directory: linux-src
         run: |
           ../configs/${{ steps.resolve_vars.outputs.linux_config }}.sh
           make -j$(getconf _NPROCESSORS_ONLN) bindeb-pkg
 
       - name: Upload build artifact
-        if: steps.get_last_metadata.outputs.result
+        if: fromJSON(steps.export_metadata.outputs.prev) != fromJSON(steps.export_metadata.outputs.curr)
         uses: actions/upload-artifact@v7
         with:
           name: linuxdebs
