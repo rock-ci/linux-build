@@ -47,6 +47,9 @@ jobs:
       LINUX_REF_WD: "${{ inputs.linux_ref }}"
       LINUX_ARCH_WD: "${{ inputs.linux_arch }}"
       LINUX_CONFIG_WD: "${{ inputs.linux_config }}"
+    permissions:
+      contents: read
+      actions: read
     steps:
       - name: Check out this repo
         uses: actions/checkout@v7
