@@ -62,13 +62,12 @@ jobs:
         name: Get commit on remote branch
         run: |
           git config --global --add safe.directory $(pwd)
-          this_repo_commit="$(git rev-parse HEAD)"
           remote_commit=$(git ls-remote --heads '${{ steps.resolve_vars.outputs.linux_repo }}' '${{ steps.resolve_vars.outputs.linux_ref }}' | awk '{print $1}')
-          echo "Remote commit: $remote_commit"
+          printf "This run's metadata: "
           echo '${{ toJSON(steps.resolve_vars.outputs) }}' | jq \
-            --arg buildcommit "$this_repo_commit" \
+            --arg buildcommit "$GITHUB_SHA" \
             --arg linuxcommit "$remote_commit" \
-            '. += {"build_commit":$buildcommit,"linux_commit":$linuxcommit}' > new_metadata.json
+            '. += {"build_commit":$buildcommit,"linux_commit":$linuxcommit}' | tee new_metadata.json
 
       - id: get_last_run
         name: Get previous run
@@ -128,7 +127,7 @@ jobs:
           cd linux-src
           # Overwrite metadata.json with what was actually cloned in case it differs:
           echo '${{ toJSON(steps.resolve_vars.outputs) }}' | jq \
-            --arg buildcommit "$this_repo_commit" \
+            --arg buildcommit "$GITHUB_SHA" \
             --arg linuxcommit "$(git rev-parse HEAD)" \
             '. += {"build_commit":$buildcommit,"linux_commit":$linuxcommit}' > ../metadata.json
 
