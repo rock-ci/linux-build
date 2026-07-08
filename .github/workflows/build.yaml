@@ -109,12 +109,12 @@ jobs:
       - id: export_metadata
         name: Export and update metadata
         run: |
-          printf 'curr=%s\n' "$(jq -c . < new_metadata.json)" >> "$GITHUB_OUTPUT"
+          printf 'curr=%s\n' "$(jq -c . < new_metadata.json)" | tee -a "$GITHUB_OUTPUT"
           if [ -f metadata.json ]
           then
-            printf 'prev=%s\n' "$(jq -c . < metadata.json)" >> "$GITHUB_OUTPUT"
+            printf 'prev=%s\n' "$(jq -c . < metadata.json)" | tee -a "$GITHUB_OUTPUT"
           else
-            printf 'prev=null\n' >> "$GITHUB_OUTPUT"
+            printf 'prev=null\n' | tee -a "$GITHUB_OUTPUT"
           fi
           rm -f metadata.json
           mv new_metadata.json metadata.json
