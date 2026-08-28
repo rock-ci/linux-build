@@ -104,6 +104,7 @@ jobs:
           name: metadata.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ steps.get_last_run.outputs.result }}
+        continue-on-error: true
 
       - id: compare_metadata
         name: Compare previous and current build metadata
